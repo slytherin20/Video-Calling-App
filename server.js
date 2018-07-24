@@ -2,9 +2,12 @@ const express=require('express');
 const http = require('http');
 const app=express();
 const socketServer = http.Server(app);
+const bodyParser=require('body-parser');
 const socket = require('socket.io');
 const PORT = process.env.PORT || 5000;
 const io = socket(socketServer);
+app.use(bodyParser.urlencoded({extended:true}));
+app.use(bodyParser.json());
 let mapping = new Object();
 app.use('/',express.static('./public'));
 socketServer.listen(PORT,function(req,res){
@@ -30,6 +33,11 @@ io.sockets.on('connection',function(sk){
             mapping[room].push(sk.id);
             console.log(mapping);
         }
+        sk.on('message',function(message){
+
+          console.log('Following message is sent:'+message);
+          sk.broadcast.emit('message sent',message);
+        });
         sk.on('disconnect',function(){
             if(mapping[room]) {
                 if(mapping[room].length>0){
