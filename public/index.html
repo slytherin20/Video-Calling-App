@@ -3,14 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <title>Video calling app</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>
-<h1>Video Calling app</h1>
-<video autoplay playsinline id="localvideo"></video>
+<!--<h1>Video Calling app</h1>-->
+<video autoplay muted id="localvideo"></video>
 <video autoplay playsinline id="remotevideo"></video>
+<div id="button-cont">
 <button id="call" disabled>Call</button>
 <button id="hangup" disabled>HangUp</button>
+</div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.js"></script>
 <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
 <script src="/socket.io/socket.io.js"></script>

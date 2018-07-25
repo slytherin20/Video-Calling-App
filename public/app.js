@@ -69,11 +69,12 @@ $(document).ready(function() {
     function gotLocalMediaStream(mediaStream) {
         localstream = mediaStream;
         localvideo.srcObject = localstream;
+        remotevideo.style.display="none";
         console.log("got the local stream");
         Message('got local media');
-        if (isInitiator) {
-            starting();
-        }
+    //    if (isInitiator) {
+      //      starting();
+      //  }
     }
 
     function LocalMediaStreamError(error) {
@@ -87,9 +88,9 @@ $(document).ready(function() {
             createConnection();
             peerConnection.addStream(localstream);
             isstarted = true;
-           if (isInitiator) {
-                callbutton.disabled = false;
-            }
+          // if (isInitiator) {
+                //callbutton.disabled = false;
+           // }
 
         }
     }
@@ -124,10 +125,17 @@ $(document).ready(function() {
 
     socket.on('message sent', function (message){
         msg=JSON.parse(message);
-        if (msg === "got local media") {
-            starting();
-        }
-        if (msg.type === 'candidate' && isstarted) {
+         if(msg ==="got local media"){
+             alert('Another peer is online');
+         }
+         else if(msg === "calling"){
+             callbutton.disabled=true;
+             endbutton.disabled = false;
+         }
+     //   if (msg === "got local media") {
+       //     starting();
+        //}
+        else if (msg.type === 'candidate' && isstarted) {
             console.log(' new ice candidate added ');
             let cd = new RTCIceCandidate({
                 sdpMLineIndex: msg.label,
@@ -141,6 +149,8 @@ $(document).ready(function() {
             }
             peerConnection.setRemoteDescription(new RTCSessionDescription(msg));
             answer();
+            localvideo.style.display="none";
+            remotevideo.style.display="block";
         }
         else if (msg.type === 'answer' && isstarted) {
             peerConnection.setRemoteDescription(new RTCSessionDescription(msg));
@@ -149,6 +159,8 @@ $(document).ready(function() {
             alert('Call has ended from other side');
             isInitiator = false;
             end();
+            callbutton.disabled=false;
+            endbutton.disabled=true;
         }
     });
 
@@ -159,11 +171,21 @@ $(document).ready(function() {
     }
 
     function call() {
-        isInitiator=true;
-        callbutton.disabled = true;
-        endbutton.disabled = false;
-        console.log('creating offer');
-        peerConnection.createOffer(offerOptions).then(handleCreateOffer).catch(handleCreateOfferError);
+        if(channelready){
+            isInitiator=true;
+            starting();
+            Message('calling');
+            callbutton.disabled = true;
+            endbutton.disabled = false;
+            localvideo.style.display="none";
+            remotevideo.style.display="block";
+            console.log('creating offer');
+            peerConnection.createOffer(offerOptions).then(handleCreateOffer).catch(handleCreateOfferError);
+        }
+        else{
+            alert('No other user online');
+        }
+
 
     }
 
@@ -187,7 +209,8 @@ $(document).ready(function() {
     }
 
     function endcall() {
-
+        callbutton.disabled=false;
+        endbutton.disabled=true;
         Message('Call ended from other side');
         end();
 
