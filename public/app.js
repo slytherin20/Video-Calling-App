@@ -41,23 +41,37 @@ $(document).ready(function() {
             }
         ]
     };
-/////////////////////////////////////////////////////////////////////////////////////////
-    let room = prompt("Enter the room name:");
-    while(room==="" || room===null){
-        room=prompt("Please enter your room number");
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    let room=prompt("Enter room name:");
+    console.log(room);
+    while(room===""||room===null){
+       room=prompt("Enter room name:");
     }
     const socket = io();
+    setTimeout(sendHeartbeat, 25000);
+   socket.on('ping',function(){
+       console.log("Server sent a ping");
+    });
+
+    function sendHeartbeat(){
+        setTimeout(sendHeartbeat, 25000);
+        socket.emit('pong', { beat : 1 });
+    }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     socket.emit('create or join', room);
-    socket.on('joined', function (roomno, id) {
-        alert(id + " has joined the " + roomno + " room");
+    socket.on('joined', function (roomno,id) {
+        alert(id + " has joined the " + "room" + roomno);
         channelready = true;
     });
-    socket.on('created', function (roomno, id) {
-        alert(id + " has created the room " + roomno);
+    socket.on('created', function (roomno,id) {
+        alert(id+ " has created the room " + roomno);
     });
     socket.on('full', function (roomno) {
         alert('room ' + roomno + " is full try another room");
-        room = prompt("Enter another room name:");
+        room=prompt("Enter room name:");
+       while(room===""||room===null){
+           prompt("Enter room name:");
+       }
         socket.emit('create or join', room);
     });
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -71,10 +85,7 @@ $(document).ready(function() {
         localvideo.srcObject = localstream;
         remotevideo.style.display="none";
         console.log("got the local stream");
-        Message('got local media');
-    //    if (isInitiator) {
-      //      starting();
-      //  }
+
     }
 
     function LocalMediaStreamError(error) {
@@ -125,16 +136,10 @@ $(document).ready(function() {
 
     socket.on('message sent', function (message){
         msg=JSON.parse(message);
-         if(msg ==="got local media"){
-             alert('Another peer is online');
-         }
-         else if(msg === "calling"){
+          if(msg === "calling"){
              callbutton.disabled=true;
              endbutton.disabled = false;
          }
-     //   if (msg === "got local media") {
-       //     starting();
-        //}
         else if (msg.type === 'candidate' && isstarted) {
             console.log(' new ice candidate added ');
             let cd = new RTCIceCandidate({
