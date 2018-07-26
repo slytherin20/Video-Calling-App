@@ -24,23 +24,7 @@ $(document).ready(function() {
     let peerConnection;
     callbutton.onclick = call;
     endbutton.onclick = endcall;
-    const server={
-        "iceServers":[
-          {
-                "urls": "stun:stun.l.google.com:19302"
-            },
-            {
-                "urls":"turn:192.168.1.156:3478",
-                "username":"sonali",
-                "credential":"@ttitude"
-            },
-            {
-                "urls":"turn:w3.xirsys.com:80?transport=udp",
-                "username": "65b1ebe2-8f32-11e8-9680-0dbe0cda4869",
-                "credential":"65b1ec5a-8f32-11e8-85ae-f83960d357c9"
-            }
-        ]
-    };
+   
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     let room=prompt("Enter room name:");
     console.log(room);
