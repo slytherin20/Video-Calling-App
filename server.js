@@ -15,7 +15,6 @@ app.use(bodyParser.urlencoded({extended:true}));
 app.use(bodyParser.json());
 
 
-let mapping = new Object();
 app.use('/',express.static('./public'));
 
 
@@ -24,7 +23,7 @@ socketServer.listen(PORT,function(req,res){
 });
 
 io.sockets.on('connection',function(sk){
-        setTimeout(sendHeartbeat, 25000);
+       setTimeout(sendHeartbeat, 25000);
 
         function sendHeartbeat(){
             setTimeout(sendHeartbeat, 25000);
@@ -34,52 +33,36 @@ io.sockets.on('connection',function(sk){
         console.log("Client sent a pong");
     });
 
+
     sk.on('create or join',function(room){
-        if(mapping[room]){
-            if(mapping[room].length===1){
-                io.emit('joined',room,sk.id);
-                mapping[room].push(sk.id);
-                console.log(mapping);
-            }
-            else{
-                sk.emit('full',room);
-                console.log(mapping);
-            }
+        let room_client =io.sockets.adapter.rooms[room];
+        let client_number;
+        if(room_client){
+            client_number = Object.keys(room_client.sockets).length;
         }
-
         else{
-            sk.emit('created',room,sk.id);
-            mapping[room]=[];
-            mapping[room].push(sk.id);
-            console.log(mapping);
+            client_number=0;
         }
-        sk.on('message',function(message){
-
-          console.log('Following message is sent:'+message);
-          sk.broadcast.emit('message sent',message);
-        });
-        sk.on('disconnect',function(){
-            if(mapping[room]) {
-                if(mapping[room].length>0){
-                    let room_name = mapping[room];
-                    let index = room_name.indexOf(sk.id);
-                    room_name.splice(index, 1);
-                    console.log(mapping);
-                    if(mapping[room].length===0){
-                        delete mapping[room];
-                        console.log(mapping);
-                    }
-                }
-
-
-            }
-
-        });
+        if(client_number===0){
+            sk.join(room);
+            sk.emit('created',room,sk.id);
+            console.log("Room is created");
+        }
+        else if(client_number===1){
+            sk.join(room);
+            io.in(room).emit('joined',room,sk.id);
+            console.log("room is joined");
+        }
+        else{
+            sk.emit('full',room);
+            console.log("Room is full try another room");
+        }
 
     });
-
-
-
+    sk.on('message',function(message,roomno){
+        console.log('Following message is sent to room '+roomno+': ' +message);
+        sk.to(roomno).emit('message sent',message);
+    });
 
 
 });

@@ -24,7 +24,23 @@ $(document).ready(function() {
     let peerConnection;
     callbutton.onclick = call;
     endbutton.onclick = endcall;
-   
+    const server={
+        "iceServers":[
+            {
+                "urls": "stun:stun.l.google.com:19302"
+            },
+            {
+                "urls":"turn:192.168.1.156:3478",
+                "username":"sonali",
+                "credential":"@ttitude"
+            },
+            {
+                "urls":"turn:w3.xirsys.com:80?transport=udp",
+                "username": "65b1ebe2-8f32-11e8-9680-0dbe0cda4869",
+                "credential":"65b1ec5a-8f32-11e8-85ae-f83960d357c9"
+            }
+        ]
+    };
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     let room=prompt("Enter room name:");
     console.log(room);
@@ -32,19 +48,15 @@ $(document).ready(function() {
        room=prompt("Enter room name:");
     }
     const socket = io();
-    setTimeout(sendHeartbeat, 25000);
-   socket.on('ping',function(){
-       console.log("Server sent a ping");
+    socket.on('ping',function(data){
+       console.log('Ping received.');
+       socket.emit('pong',"pong");
     });
-
-    function sendHeartbeat(){
-        setTimeout(sendHeartbeat, 25000);
-        socket.emit('pong', { beat : 1 });
-    }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     socket.emit('create or join', room);
     socket.on('joined', function (roomno,id) {
         alert(id + " has joined the " + "room" + roomno);
+        room=roomno;
         channelready = true;
     });
     socket.on('created', function (roomno,id) {
@@ -59,7 +71,7 @@ $(document).ready(function() {
         socket.emit('create or join', room);
     });
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    console.log("Requesting localmediastream..");
+    console.log("Requesting local media stream..");
     callbutton.disabled = false;
     navigator.mediaDevices.getUserMedia(LocalMediastream).then(gotLocalMediaStream).catch(LocalMediaStreamError);
 
@@ -83,10 +95,6 @@ $(document).ready(function() {
             createConnection();
             peerConnection.addStream(localstream);
             isstarted = true;
-          // if (isInitiator) {
-                //callbutton.disabled = false;
-           // }
-
         }
     }
 
@@ -114,13 +122,14 @@ $(document).ready(function() {
     }
 
     function Message(message) {
-        console.log('Peer sending message');
-        socket.emit('message',JSON.stringify(message));
+        console.log('Peer sending message to ' + room);
+        socket.emit('message',JSON.stringify(message),room);
     }
 
     socket.on('message sent', function (message){
         msg=JSON.parse(message);
           if(msg === "calling"){
+              console.log("calling message received");
              callbutton.disabled=true;
              endbutton.disabled = false;
          }
